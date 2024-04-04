@@ -1,0 +1,78 @@
+# Requirements
+
+1 - Sinks and sources are not fixed, playing or pausing a video can make a sink or source appear or disappear
+  1.a - Possible solution is to don't do anything until the user right-clicks and pins the sink or source
+  According to pipewire documentation when the device is re-created it will be created with the same name, and all volume/connections will be kept
+    1.a.I - The right click can also be a little icon on the device with a pin icon, so that the user can pin it without having to right click
+
+2 - Sinks and sources are not grouped by app, they are their own thing (each tab on firefox can spawn a new souce and sink sometimes even multiple ones)
+  2.a - fixing this is easy, just check the app resposibly by the sinks and sources and internally group them (don't create new virtual sinks and sources to group then
+  because it can create latency on the audio stream, handle it visually (internally))
+  
+  2.b - However, its also good to give the user the option to make this grouping throught pipewire, so that he can make use of this grouping on other apps even through
+  it might increase latency
+    2.b.I- this comes with the problem that for some groupings the user might want to use the grouping from pipewire and for others he might want to use the grouping from
+    the internal app handler
+    
+    2.b.II- Since app grouping is done automaticly when a group is created it uses internal grouping, however when the user clicks on the "Create virtual device" button the app switches to
+    pipewire grouping
+
+3 - The user might want to have a group of sinks and sources that are not related to any app, for example, a group of sinks and sources that are used for a specific purpose
+Like the audio cables on windows
+  3.a - this can be easily achieved by using the same grouping technique as app groups, by creating a new audio virtual input and output device and linking the then the user is
+  able to mix audio from different sources and have a single output device that can be used by any app
+
+4 - The user needs to be able to control lots of parameters about his audio devices, like master volume, channel volume, balance, EQ, etc.
+  4.a - The idea is to create a mixer panel, where the user connects his audio devices to either an input of the mixer, or an output, this way it is possible to control,
+  all this parameters, and also provide combined mixes, like a mix of all the audio devices.
+    4.a.I - each device item on the mixer will have 1 input and 2 outputs per channel, the input will receive the audio stream from a device, and both outputs will output the same
+    audio stream, this is to easily allow the user to send the mixed output to another mixer track (dasy chaining tracks) or send the output to two different devices (like a speaker and a headphone)
+    
+5 - front and back side of the rack, this allows us to fit more connections as well as make the rack less of a mess, since cables and connections can be hidden on the back side of the rack
+
+6 - The usage of more than one window can allow us to fit more devices and organize things better as well as allow the user to have multiple racks,
+the user would still be allowed to connect devices between racks using a patch panel (a device where the user can add connections between one conection on one rack and another connection on another rack)
+
+7 - R-LAN, a way to the user to send data and audio through the network (local network LAN), the name actually stands for (RackWirer Local Area Network),
+the user can use this to send triggers, state data or straigh up audio throught the network.
+  7.a - Can be used to link two RackWirer instances together on different computers, so that the user can have a single rack on two different computers
+    7.a.I - Or to have two racks on two different computers and link them together using a patch panel
+
+8 - The user needs to be able to save and load his racks, this can be done by saving the rack as a json file, this file will contain all the information about the rack,
+including the devices, connections, groups, everything, this way the user can share his racks with other people, or even use the same rack on different computers.
+
+9 - The user can create macros that are placed on the bottom panel of the window, this macros can be used to automate tasks, like changing the volume of a device, or
+mutting all mics, or even changing the volume of a group of devices, or even changing the volume of a device on another rack (using R-LAN).
+  9.a - This macros can be triggered by a button, or by a keybind, or even by a midi controller
+  9.b - This macros will be written in Lua by the user, this way the user can have a lot of control over what the macro does, while being easy to use and learn and allowing
+  for a lot of flexibility and interactivity between the app and other apps or devices on the pc.
+
+10 - PipeWire supports video streams as well, so it is possible to have a video rack, where the user can connect video devices and mix them together, the solution is to use a
+different kind of cable for video, this cable will be a video cable for simplicity sake the audio cable will be a p10 cable and the video cable will be a HDMI cable, this way
+the user can easily associate the kinds of cable with the kind of data that is being sent through it, and better differentiate between audio and video cables.
+  10.a - This means racks can now have audio and video devices, also means the need to a different mixer for video, as well as a bus, splitter but no a merger, because we cannot,
+  mix two videos together.
+    10.a.I - One solution is to have a combiner that allows the user to create a video stream thats a side by side or top by top of two video streams, or crop a video stream
+    to only show a part of it, although this might be better as a separated device that crops video streams, and a separated device that combines video streams, this way the
+    user has more flexibility and control over the video streams.
+
+11 - PipeWire also supports midi streams, so it is possible to have a midi rack, where the user can connect midi devices and mix them together, the solution is to use a
+different kind of cable for midi, this cable will be a USB cable for simplicity sake, this way
+  11.a - This feature however is not a priority, and should be able to be add later on without problems using the same techniques as the audio and video racks.
+
+12 - The user needs to be able to add effects to his devices, this can be done by adding a new device to the rack, to do that on the bottom left corner of the window there
+will be a button "Add Devices" that switches the view to the add device view, where the places were devices can be added to the rack are highlighted with a dotter border,
+and a panel will open at the bottom of the window with the list of devices separated by categories, like video, audio, midi, organization, and inner categories like,
+effects, virtual devices, when applicable, to add a devices the user just needs to drag and drop the device from the list to the highlighted area. Once the user is done they can
+just press the "Leave editing mode" button placed at the same place as the "Add devices" Button.
+  12.a - The user can also add devices by right clicking on an empty spot on the rack and hovering the "Add device" option, this will open a menu with the same list of devices
+  as the add device view, the user can then select the device he wants to add and it will be added to the nearest available spot on the rack relative to were the user right clicked. 
+
+13 - XLib doesn't like when multiple threads try to do stuff to a window, it seems the problem is on the event system, the idea then is to have a thread per window, and that thread
+is responsable for doing everything on it, events are received using the shared event loop system of the application.
+
+14 - The application will have multiple threads and they need to be able to communicate with each other and send data, however not everything likes being thread safe. The workaround
+is to use a asyncronous event system, each thread is going to have an event loop, that can receive data from other threads and put in a queue, and the event is handled internally on
+the thread.
+  14.a - How will the event loop work together with other libs loops is still a question, for the current 3 libs (XLib, PipeWire and DBus) Both XLib and DBus can have their loops
+  integrated with the event loop of the application, PipeWire seens however to spawn its own auxiliar thread for its loop and block its main thread.
