@@ -15,9 +15,9 @@ int main(int argc, char **argv) {
   std::thread pipewireThread(&PipeWireThreadTest::start, &pwt, &argc, &argv);
   std::thread dbusThread(&DbusThreadTest::start, &dbt, &xlt);
 
-  ae.addEventListener("buttonClick", [&](void*) {
+  ae.addEventListener("buttonClick", std::make_shared<ActionCallbackFunc>([&](void*) {
     xlt.drawSpecialMenuClickEventCallback();
-  });
+  }));
 
   while (xlt.running) std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
@@ -31,3 +31,4 @@ int main(int argc, char **argv) {
 
   return 0;
 }
+

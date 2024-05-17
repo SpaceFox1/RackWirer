@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <functional>
 #include <thread>
+#include "./DbusHandler/DbusHandler.h"
 #include "../ActionEmitter.h"
 #include "../XLibThreadTest.h"
 
@@ -22,6 +23,7 @@ class DbusThreadTest {
     void DbusLoop();
 
     ActionEmitter* ae;
+    DbusHandler handler;
 
   public:
     bool isRunning;

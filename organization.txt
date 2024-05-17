@@ -76,3 +76,4 @@ is to use a asyncronous event system, each thread is going to have an event loop
 the thread.
   14.a - How will the event loop work together with other libs loops is still a question, for the current 3 libs (XLib, PipeWire and DBus) Both XLib and DBus can have their loops
   integrated with the event loop of the application, PipeWire seens however to spawn its own auxiliar thread for its loop and block its main thread.
+

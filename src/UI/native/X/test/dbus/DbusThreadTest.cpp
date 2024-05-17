@@ -111,7 +111,7 @@ DBusHandlerResult server_get_all_properties_handler(DBusConnection *conn, DBusMe
   return result;
 }
 
-DbusThreadTest::DbusThreadTest(ActionEmitter* ae) {
+DbusThreadTest::DbusThreadTest(ActionEmitter* ae) : handler(DbusHandler(std::string("RootNode"))) {
   this->isRunning = false;
   this->myDBusConnection = nullptr;
   this->myDBusError = DBUS_ERROR_INIT;
@@ -206,8 +206,30 @@ DBusHandlerResult DbusThreadTest::handleIncommingMessage(DBusMessage* message) {
   DBusMessage *reply = NULL;
   DBusHandlerResult result = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
   
+  const char* path = dbus_message_get_path(message);
+  if (path == nullptr) return result;
+
+  DbusNode* node = this->handler.getNode(path);
+  if (node == nullptr) return result;
+
   const char* interface = dbus_message_get_interface(message);
   if (interface == nullptr) return result;
+
+  DBUSInterface* iface = node->getInterface(interface);
+  if (iface == nullptr) return result;
+
+  const char* member = dbus_message_get_member(message);
+  if (member == nullptr) return result;
+
+  DBUSMethod* method = iface->getMethod(member);
+  if (method == nullptr) return result;
+
+  reply = method->getCallback().get()->operator()(message);
+  
+  result = handleResponseCleanUp(message, reply, this->myDBusError);
+  dbus_message_unref(message);
+
+  return result;
 
   if (strcmp(interface, "com.canonical.dbusmenu") == 0) {
     DbusThreadTest::handleMenuMessage(message, reply);

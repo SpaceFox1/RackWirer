@@ -4,10 +4,10 @@ ActionEmitter::ActionEmitter() {
   this->eventList = nullptr;
 }
 
-int ActionEmitter::addEventListener(const char* event, std::function<void (void *)> callback) {
+int ActionEmitter::addEventListener(const char* event, ActionCallback callback) {
   struct EventList* newCallback = (struct EventList*) malloc(sizeof(struct EventList));
   newCallback->event = event;
-  newCallback->callback = &callback;
+  newCallback->callback = callback;
   newCallback->next = nullptr;
   int id = 0;
   if (this->eventList == nullptr) this->eventList = newCallback;
@@ -43,7 +43,7 @@ void ActionEmitter::emit(const char* event, void* data) {
   struct EventList* current = this->eventList;
   while (current != nullptr) {
     if (strcmp(current->event, event) == 0) {
-      (*current->callback)(data);
+      current->callback.get()->operator()(data);
     }
     current = current->next;
   }

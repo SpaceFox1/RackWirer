@@ -1,0 +1,3 @@
+[submodule "src/SFGUILib"]
+	path = src/SFGUILib
+	url = https://github.com/emanuelfranklyn/SpaceFoxGUI-Lib
